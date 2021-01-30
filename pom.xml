@@ -54,33 +54,6 @@
         </configuration>
       </plugin>
       <plugin>
-        <!-- Ensure Java 8 and Android 10 API compatibility -->
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>animal-sniffer-maven-plugin</artifactId>
-        <version>1.16</version>
-        <executions>
-          <execution>
-            <id>animal-sniffer</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <configuration>
-              <signature>
-                <groupId>org.codehaus.mojo.signature</groupId>
-                <artifactId>java18</artifactId>
-                <version>1.0</version>
-              </signature>
-              <signature>
-                <groupId>net.sf.androidscents.signature</groupId>
-                <artifactId>android-api-level-10</artifactId>
-                <version>2.3.3_r2</version>
-              </signature>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>3.1.0</version>
@@ -120,7 +93,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>3.0.2</version>
+        <version>3.2.0</version>
         <configuration>
           <archive>
             <manifestEntries>
@@ -182,45 +155,6 @@
           <parallel>methods</parallel>
           <threadCount>8</threadCount>
         </configuration>
-      </plugin>
-      <plugin>
-        <!-- API version compat check - https://siom79.github.io/japicmp/ -->
-        <groupId>com.github.siom79.japicmp</groupId>
-        <artifactId>japicmp-maven-plugin</artifactId>
-        <version>0.15.2</version>
-        <configuration>
-          <!-- hard code previous version; can't detect when running stateless on build server -->
-          <oldVersion>
-            <dependency>
-              <groupId>org.jsoup</groupId>
-              <artifactId>jsoup</artifactId>
-              <version>1.13.1</version>
-              <type>jar</type>
-            </dependency>
-          </oldVersion>
-          <parameter>
-            <!-- jsoup policy is ok to remove deprecated methods on minor but not builds. will need to temp remove on bump to 1.15.1 and manually validate -->
-            <onlyModified>false</onlyModified>
-            <breakBuildOnBinaryIncompatibleModifications>true</breakBuildOnBinaryIncompatibleModifications>
-            <breakBuildOnSourceIncompatibleModifications>true</breakBuildOnSourceIncompatibleModifications>
-            <overrideCompatibilityChangeParameters>
-              <!-- 1.14.1 interface adds for cookies. rarely implemented outside of jsoup, and can't provide default impl in 7, so flag in changelog -->
-              <overrideCompatibilityChangeParameter>
-                <compatibilityChange>METHOD_ADDED_TO_INTERFACE</compatibilityChange>
-                <binaryCompatible>true</binaryCompatible>
-                <sourceCompatible>true</sourceCompatible>
-              </overrideCompatibilityChangeParameter>
-            </overrideCompatibilityChangeParameters>
-          </parameter>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>cmp</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
     <resources>

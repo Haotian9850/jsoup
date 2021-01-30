@@ -20,17 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.net.CookieManager;
-import java.net.CookieStore;
-import java.net.HttpURLConnection;
-import java.net.IDN;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.Proxy;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.*;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -348,22 +338,25 @@ public class HttpConnection implements Connection {
         return this;
     }
 
-    public Document get() throws IOException {
+    public Document get(Authenticator auth) throws IOException {
         req.method(Method.GET);
-        execute();
+        execute(auth);
         Validate.notNull(res);
         return res.parse();
     }
 
+    /**
+     * POST does not support one-time authentication
+     */
     public Document post() throws IOException {
         req.method(Method.POST);
-        execute();
+        execute(null);
         Validate.notNull(res);
         return res.parse();
     }
 
-    public Connection.Response execute() throws IOException {
-        res = Response.execute(req);
+    public Connection.Response execute(Authenticator auth) throws IOException {
+        res = Response.execute(req, auth);
         return res;
     }
 
@@ -823,11 +816,11 @@ public class HttpConnection implements Connection {
             contentType = null;
         }
 
-        static Response execute(HttpConnection.Request req) throws IOException {
-            return execute(req, null);
+        static Response execute(HttpConnection.Request req, Authenticator auth) throws IOException {
+            return execute(req, null, auth);
         }
 
-        static Response execute(HttpConnection.Request req, @Nullable Response previousResponse) throws IOException {
+        static Response execute(HttpConnection.Request req, @Nullable Response previousResponse, Authenticator auth) throws IOException {
             synchronized (req) {
                 Validate.isFalse(req.executing, "Multiple threads were detected trying to execute the same request concurrently. Make sure to use Connection#newRequest() and do not share an executing request between threads.");
                 req.executing = true;
@@ -851,7 +844,7 @@ public class HttpConnection implements Connection {
                 mimeBoundary = setOutputContentType(req);
 
             long startTime = System.nanoTime();
-            HttpURLConnection conn = createConnection(req);
+            HttpURLConnection conn = createConnection(req, auth);
             Response res = null;
             try {
                 conn.connect();
@@ -878,7 +871,7 @@ public class HttpConnection implements Connection {
                     req.url(encodeUrl(redir));
 
                     req.executing = false;
-                    return execute(req, res);
+                    return execute(req, res, auth);
                 }
                 if ((status < 200 || status >= 400) && !req.ignoreHttpErrors())
                         throw new HttpStatusException("HTTP error fetching URL", status, req.url().toString());
@@ -1007,14 +1000,16 @@ public class HttpConnection implements Connection {
         }
 
         // set up connection defaults, and details from request
-        private static HttpURLConnection createConnection(HttpConnection.Request req) throws IOException {
+        private static HttpURLConnection createConnection(HttpConnection.Request req, Authenticator auth) throws IOException {
             Proxy proxy = req.proxy();
             final HttpURLConnection conn = (HttpURLConnection) (
                 proxy == null ?
                 req.url().openConnection() :
                 req.url().openConnection(proxy)
             );
-
+            if(auth != null){
+                conn.setAuthenticator(auth);
+            }
             conn.setRequestMethod(req.method().name());
             conn.setInstanceFollowRedirects(false); // don't rely on native redirection support
             conn.setConnectTimeout(req.timeout());

@@ -8,6 +8,7 @@ import javax.net.ssl.SSLSocketFactory;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Authenticator;
 import java.net.CookieStore;
 import java.net.Proxy;
 import java.net.URL;
@@ -32,7 +33,7 @@ import java.util.Map;
 #newRequest()}s.</p>
  <p>Note that the term "Connection" used here does not mean that a long-lived connection is held against a server for
  the lifetime of the Connection object. A socket connection is only made at the point of request execution ({@link
-#execute()}, {@link #get()}, or {@link #post()}), and the server's response consumed.</p>
+#execute(Authenticator)}, {@link #get(Authenticator)}, or {@link #post()}), and the server's response consumed.</p>
  <p>For multi-threaded implementations, it is important to use a {@link #newRequest()} for each request. The session may
  be shared across threads but a given request, not.</p>
  */
@@ -325,7 +326,7 @@ public interface Connection {
      * @throws java.net.SocketTimeoutException if the connection times out
      * @throws IOException on error
      */
-    Document get() throws IOException;
+    Document get(Authenticator auth) throws IOException;
 
     /**
      * Execute the request as a POST, and parse the result.
@@ -347,7 +348,7 @@ public interface Connection {
      * @throws java.net.SocketTimeoutException if the connection times out
      * @throws IOException on error
      */
-    Response execute() throws IOException;
+    Response execute(Authenticator auth) throws IOException;
 
     /**
      * Get the request object associated with this connection

@@ -66,7 +66,7 @@ public class Jsoup {
      * <p>
      * Use examples:
      * <ul>
-     *  <li><code>Document doc = Jsoup.connect("http://example.com").userAgent("Mozilla").data("name", "jsoup").get();</code></li>
+     *  <li><code>Document doc = Jsoup.connect("http://example.com").userAgent("Mozilla").data("name", "jsoup").get(auth);</code></li>
      *  <li><code>Document doc = Jsoup.connect("http://example.com").cookie("auth", "token").post();</code></li>
      * </ul>
      * @param url URL to connect to. The protocol must be {@code http} or {@code https}.
@@ -212,7 +212,7 @@ Connection con3 = session.newRequest();
     public static Document parse(URL url, int timeoutMillis) throws IOException {
         Connection con = HttpConnection.connect(url);
         con.timeout(timeoutMillis);
-        return con.get();
+        return con.get(null);
     }
 
     /**
